@@ -23,6 +23,9 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include <QtPlugin>
 
 
+using namespace MOBase;
+
+
 InstallerBundle::InstallerBundle()
 {
 }
@@ -84,7 +87,7 @@ bool InstallerBundle::isArchiveSupported(const DirectoryTree &tree) const
   return false;
 }
 
-IPluginInstaller::EInstallResult InstallerBundle::install(QString &modName, DirectoryTree &tree)
+IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> &modName, DirectoryTree &tree)
 {
   for (DirectoryTree::const_leaf_iterator fileIter = tree.leafsBegin();
        fileIter != tree.leafsEnd(); ++fileIter) {

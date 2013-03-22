@@ -24,29 +24,29 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include <iplugininstallersimple.h>
 
 
-class InstallerBundle : public IPluginInstallerSimple
+class InstallerBundle : public MOBase::IPluginInstallerSimple
 {
 
   Q_OBJECT
-  Q_INTERFACES(IPlugin IPluginInstaller IPluginInstallerSimple)
+  Q_INTERFACES(MOBase::IPlugin MOBase::IPluginInstaller MOBase::IPluginInstallerSimple)
 
 public:
 
   InstallerBundle();
 
-  virtual bool init(IOrganizer *moInfo);
+  virtual bool init(MOBase::IOrganizer *moInfo);
   virtual QString name() const;
   virtual QString author() const;
   virtual QString description() const;
-  virtual VersionInfo version() const;
+  virtual MOBase::VersionInfo version() const;
   virtual bool isActive() const;
-  virtual QList<PluginSetting> settings() const;
+  virtual QList<MOBase::PluginSetting> settings() const;
 
   virtual unsigned int priority() const;
   virtual bool isManualInstaller() const;
 
-  virtual bool isArchiveSupported(const DirectoryTree &tree) const;
-  virtual EInstallResult install(QString &modName, DirectoryTree &tree);
+  virtual bool isArchiveSupported(const MOBase::DirectoryTree &tree) const;
+  virtual EInstallResult install(MOBase::GuessedValue<QString> &modName, MOBase::DirectoryTree &tree);
 };
 
 
