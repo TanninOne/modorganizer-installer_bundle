@@ -87,7 +87,8 @@ bool InstallerBundle::isArchiveSupported(const DirectoryTree &tree) const
   return false;
 }
 
-IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> &modName, DirectoryTree &tree)
+IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> &modName, DirectoryTree &tree,
+                                                          QString&, int&)
 {
   for (DirectoryTree::const_leaf_iterator fileIter = tree.leafsBegin();
        fileIter != tree.leafsEnd(); ++fileIter) {
