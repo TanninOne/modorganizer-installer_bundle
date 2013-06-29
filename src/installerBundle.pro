@@ -12,6 +12,11 @@ TEMPLATE = lib
 CONFIG += plugins
 CONFIG += dll
 
+CONFIG(release, debug|release) {
+  QMAKE_CXXFLAGS += /Zi
+  QMAKE_LFLAGS += /DEBUG
+}
+
 DEFINES += INSTALLERBUNDLE_LIBRARY
 
 SOURCES += installerbundle.cpp
