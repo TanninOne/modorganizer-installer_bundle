@@ -84,6 +84,13 @@ bool InstallerBundle::isArchiveSupported(const DirectoryTree &tree) const
       return true;
     }
   }
+  if ((tree.numNodes() == 0)
+      && (tree.numLeafs() == 1)
+      && (tree.leafsBegin()->getName().endsWith(".7z", Qt::CaseInsensitive)
+          || tree.leafsBegin()->getName().endsWith(".rar", Qt::CaseInsensitive))) {
+    // nested archive
+    return true;
+  }
   return false;
 }
 
@@ -92,9 +99,18 @@ IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> 
 {
   for (DirectoryTree::const_leaf_iterator fileIter = tree.leafsBegin();
        fileIter != tree.leafsEnd(); ++fileIter) {
-    if (fileIter->getName().endsWith(".fomod", Qt::CaseInsensitive)) {
+    QString name = fileIter->getName();
+    if (name.endsWith(".fomod", Qt::CaseInsensitive)
+        || name.endsWith(".7z", Qt::CaseInsensitive)
+        || name.endsWith(".rar", Qt::CaseInsensitive)) {
       QString tempFile = manager()->extractFile(fileIter->getName());
-      return manager()->installArchive(modName, tempFile);
+qDebug("install bundled file: %s", qPrintable(tempFile));
+      IPluginInstaller::EInstallResult res = manager()->installArchive(modName, tempFile);
+qDebug("res: %d", res);
+      if (res == IPluginInstaller::RESULT_SUCCESS) {
+        res = IPluginInstaller::RESULT_SUCCESSCANCEL;
+      }
+      return res;
     }
   }
   return IPluginInstaller::RESULT_NOTATTEMPTED;
