@@ -104,9 +104,7 @@ IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> 
         || name.endsWith(".7z", Qt::CaseInsensitive)
         || name.endsWith(".rar", Qt::CaseInsensitive)) {
       QString tempFile = manager()->extractFile(fileIter->getName());
-qDebug("install bundled file: %s", qPrintable(tempFile));
       IPluginInstaller::EInstallResult res = manager()->installArchive(modName, tempFile);
-qDebug("res: %d", res);
       if (res == IPluginInstaller::RESULT_SUCCESS) {
         res = IPluginInstaller::RESULT_SUCCESSCANCEL;
       }
