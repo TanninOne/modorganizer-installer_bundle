@@ -27,4 +27,5 @@ HEADERS += installerbundle.h
 include(../plugin_template.pri)
 
 OTHER_FILES += \
-    installerbundle.json
+    installerbundle.json\
+    SConscript

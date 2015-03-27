@@ -1,0 +1,12 @@
+Import('qt_env')
+
+env = qt_env.Clone()
+
+env.DisableQtModules('Gui')
+env.AppendUnique(CPPDEFINES = [ 'INSTALLERBUNDLE_LIBRARY' ])
+
+# Sigh
+env['CPPPATH'] += [ '.' ]
+
+lib = env.SharedLibrary('installerBundle', env.Glob('*.cpp'))
+env.InstallModule(lib)
