@@ -80,14 +80,14 @@ bool InstallerBundle::isArchiveSupported(const DirectoryTree &tree) const
 {
   for (DirectoryTree::const_leaf_iterator fileIter = tree.leafsBegin();
        fileIter != tree.leafsEnd(); ++fileIter) {
-    if (fileIter->getName().endsWith(".fomod", Qt::CaseInsensitive)) {
+    if (fileIter->getName().endsWith(".fomod")) {
       return true;
     }
   }
   if ((tree.numNodes() == 0)
       && (tree.numLeafs() == 1)
-      && (tree.leafsBegin()->getName().endsWith(".7z", Qt::CaseInsensitive)
-          || tree.leafsBegin()->getName().endsWith(".rar", Qt::CaseInsensitive))) {
+      && (tree.leafsBegin()->getName().endsWith(".7z")
+          || tree.leafsBegin()->getName().endsWith(".rar"))) {
     // nested archive
     return true;
   }
@@ -99,11 +99,11 @@ IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> 
 {
   for (DirectoryTree::const_leaf_iterator fileIter = tree.leafsBegin();
        fileIter != tree.leafsEnd(); ++fileIter) {
-    QString name = fileIter->getName();
-    if (name.endsWith(".fomod", Qt::CaseInsensitive)
-        || name.endsWith(".7z", Qt::CaseInsensitive)
-        || name.endsWith(".rar", Qt::CaseInsensitive)) {
-      QString tempFile = manager()->extractFile(fileIter->getName());
+    FileNameString name = fileIter->getName();
+    if (name.endsWith(".fomod")
+        || name.endsWith(".7z")
+        || name.endsWith(".rar")) {
+      QString tempFile = manager()->extractFile(name.toQString());
       IPluginInstaller::EInstallResult res = manager()->installArchive(modName, tempFile);
       if (res == IPluginInstaller::RESULT_SUCCESS) {
         res = IPluginInstaller::RESULT_SUCCESSCANCEL;
