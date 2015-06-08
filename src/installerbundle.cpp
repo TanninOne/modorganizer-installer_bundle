@@ -53,7 +53,7 @@ QString InstallerBundle::description() const
 
 VersionInfo InstallerBundle::version() const
 {
-  return VersionInfo(1, 0, 0, VersionInfo::RELEASE_FINAL);
+  return VersionInfo(1, 0, 1, VersionInfo::RELEASE_FINAL);
 }
 
 bool InstallerBundle::isActive() const
