@@ -23,7 +23,6 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <iplugininstallersimple.h>
 
-
 class InstallerBundle : public MOBase::IPluginInstallerSimple
 {
 
@@ -49,8 +48,16 @@ public:
   virtual bool isManualInstaller() const;
 
   virtual bool isArchiveSupported(const MOBase::DirectoryTree &tree) const;
-  virtual EInstallResult install(MOBase::GuessedValue<QString> &modName, MOBase::DirectoryTree &tree,
+  virtual EInstallResult install(MOBase::GuessedValue<QString> &modName,
+                                 MOBase::DirectoryTree &tree,
                                  QString &version, int &modID);
+
+private:
+  //Stash the results of findObject.
+  //FIXME return a tuple?
+  mutable MOBase::DirectoryTree const *m_found_dir;
+  mutable MOBase::DirectoryTree::const_leaf_iterator m_found_leaf;
+  bool findObject(MOBase::DirectoryTree const *tree) const;
 };
 
 
