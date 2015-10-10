@@ -21,8 +21,6 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 #include "iinstallationmanager.h"
 
 #include <QtPlugin>
-/**/
-#include <QDebug>
 
 using namespace MOBase;
 
