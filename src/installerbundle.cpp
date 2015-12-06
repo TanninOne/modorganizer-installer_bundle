@@ -22,7 +22,6 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtPlugin>
 
-
 using namespace MOBase;
 
 
@@ -76,42 +75,59 @@ bool InstallerBundle::isManualInstaller() const
   return false;
 }
 
-bool InstallerBundle::isArchiveSupported(const DirectoryTree &tree) const
+bool InstallerBundle::findObject(DirectoryTree const *tree) const
 {
-  for (DirectoryTree::const_leaf_iterator fileIter = tree.leafsBegin();
-       fileIter != tree.leafsEnd(); ++fileIter) {
-    if (fileIter->getName().endsWith(".fomod")) {
+  for (;;) {
+    DirectoryTree::const_leaf_iterator fileIter = tree->leafsBegin();
+
+    //Really truly we should use the supported extensions from the installation
+    //manager here
+    if (tree->numNodes() == 0 && tree->numLeafs() == 1 &&
+        (fileIter->getName().endsWith(".7z") ||
+         fileIter->getName().endsWith(".zip") ||
+         fileIter->getName().endsWith(".rar"))) {
+      // nested archive
+      m_found_dir = tree;
+      m_found_leaf = fileIter;
       return true;
     }
+
+    for (; fileIter != tree->leafsEnd(); ++fileIter) {
+      if (fileIter->getName().endsWith(".fomod")) {
+        m_found_dir = tree;
+        m_found_leaf = fileIter;
+        return true;
+      }
+    }
+
+    //Arguably this should also check the name of the directory we're looking at
+    //is the same as the module name
+    if (tree->numNodes() != 1) {
+      return false;
+    }
+    tree = *(tree->nodesBegin());
   }
-  if ((tree.numNodes() == 0)
-      && (tree.numLeafs() == 1)
-      && (tree.leafsBegin()->getName().endsWith(".7z")
-          || tree.leafsBegin()->getName().endsWith(".rar"))) {
-    // nested archive
-    return true;
-  }
-  return false;
 }
 
-IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> &modName, DirectoryTree &tree,
+bool InstallerBundle::isArchiveSupported(const DirectoryTree &tree) const
+{
+  return findObject(&tree);
+}
+
+IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> &modName,
+                                                          DirectoryTree &tree,
                                                           QString&, int&)
 {
-  for (DirectoryTree::const_leaf_iterator fileIter = tree.leafsBegin();
-       fileIter != tree.leafsEnd(); ++fileIter) {
-    FileNameString name = fileIter->getName();
-    if (name.endsWith(".fomod")
-        || name.endsWith(".7z")
-        || name.endsWith(".rar")) {
-      QString tempFile = manager()->extractFile(name.toQString());
-      IPluginInstaller::EInstallResult res = manager()->installArchive(modName, tempFile);
-      if (res == IPluginInstaller::RESULT_SUCCESS) {
-        res = IPluginInstaller::RESULT_SUCCESSCANCEL;
-      }
-      return res;
-    }
+  if (! findObject(&tree)) {
+    return IPluginInstaller::RESULT_NOTATTEMPTED;
   }
-  return IPluginInstaller::RESULT_NOTATTEMPTED;
+  FileNameString name = m_found_dir->getFullPath(&(*m_found_leaf));
+  QString tempFile = manager()->extractFile(name.toQString());
+  IPluginInstaller::EInstallResult res = manager()->installArchive(modName, tempFile);
+  if (res == IPluginInstaller::RESULT_SUCCESS) {
+    res = IPluginInstaller::RESULT_SUCCESSCANCEL;
+  }
+  return res;
 }
 
 #if QT_VERSION < QT_VERSION_CHECK(5,0,0)
