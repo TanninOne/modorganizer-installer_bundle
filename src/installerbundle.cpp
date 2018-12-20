@@ -52,7 +52,7 @@ QString InstallerBundle::description() const
 
 VersionInfo InstallerBundle::version() const
 {
-  return VersionInfo(1, 0, 1, VersionInfo::RELEASE_FINAL);
+  return VersionInfo(1, 1, 0, VersionInfo::RELEASE_FINAL);
 }
 
 bool InstallerBundle::isActive() const
@@ -116,14 +116,14 @@ bool InstallerBundle::isArchiveSupported(const DirectoryTree &tree) const
 
 IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> &modName,
                                                           DirectoryTree &tree,
-                                                          QString&, int&)
+                                                          QString&, int &modId)
 {
   if (! findObject(&tree)) {
     return IPluginInstaller::RESULT_NOTATTEMPTED;
   }
   FileNameString name = m_found_dir->getFullPath(&(*m_found_leaf));
   QString tempFile = manager()->extractFile(name.toQString());
-  IPluginInstaller::EInstallResult res = manager()->installArchive(modName, tempFile);
+  IPluginInstaller::EInstallResult res = manager()->installArchive(modName, tempFile, modId);
   if (res == IPluginInstaller::RESULT_SUCCESS) {
     res = IPluginInstaller::RESULT_SUCCESSCANCEL;
   }
