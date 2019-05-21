@@ -14,11 +14,11 @@ build_script:
 
     C:\Python37-x64\python.exe unimake.py -d c:\projects\modorganizer-build -s Appveyor_Build=True %APPVEYOR_PROJECT_NAME%
 artifacts:
-- path: ..\..\..\install\bin\plugins\installer_bundle.dll
+- path: build\src\installer_bundle.dll
   name: installer_bundle_dll
-- path: ..\..\..\install\pdb\installer_bundle.pdb
+- path: build\src\installer_bundle.pdb
   name: installer_bundle_pdb
-- path: ..\..\..\install\libs\installer_bundle.lib
+- path: build\src\installer_bundle.lib
   name: installer_bundle_lib
 on_success:
   - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
