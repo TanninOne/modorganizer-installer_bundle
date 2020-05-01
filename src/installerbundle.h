@@ -44,20 +44,24 @@ public:
   virtual bool isActive() const;
   virtual QList<MOBase::PluginSetting> settings() const;
 
-  virtual unsigned int priority() const;
+  virtual unsigned int priority() const override;
   virtual bool isManualInstaller() const;
 
-  virtual bool isArchiveSupported(const MOBase::DirectoryTree &tree) const;
+  virtual bool isArchiveSupported(std::shared_ptr<const MOBase::IFileTree> tree) const override;
   virtual EInstallResult install(MOBase::GuessedValue<QString> &modName,
-                                 MOBase::DirectoryTree &tree,
-                                 QString &version, int &modID);
+                                 std::shared_ptr<MOBase::IFileTree> &tree,
+                                 QString &version, int &modID) override;
 
 private:
-  //Stash the results of findObject.
-  //FIXME return a tuple?
-  mutable MOBase::DirectoryTree const *m_found_dir;
-  mutable MOBase::DirectoryTree::const_leaf_iterator m_found_leaf;
-  bool findObject(MOBase::DirectoryTree const *tree) const;
+
+  /**
+   * @brief Find the first entry that can be extracted from this archive.
+   *
+   * @param tree The tree to look the entry in.
+   *
+   * @return the entry, if one was found, or a null pointer.
+   */
+  std::shared_ptr<const MOBase::FileTreeEntry> findObject(std::shared_ptr<const MOBase::IFileTree> tree) const;
 };
 
 
