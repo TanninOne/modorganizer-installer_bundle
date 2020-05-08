@@ -92,7 +92,7 @@ std::shared_ptr<const FileTreeEntry> InstallerBundle::findObject(std::shared_ptr
   int nDirs = 0;
   for (auto entry : *tree) {
     if (entry->isFile()) {
-      if (entry->compare(".fomod") == 0) {
+      if (entry->suffix().compare("fomod", FileNameComparator::CaseSensitivity) == 0) {
         return entry;
       }
     }
