@@ -75,54 +75,58 @@ bool InstallerBundle::isManualInstaller() const
   return false;
 }
 
-bool InstallerBundle::findObject(DirectoryTree const *tree) const
+std::shared_ptr<const FileTreeEntry> InstallerBundle::findObject(std::shared_ptr<const IFileTree> tree) const
 {
-  for (;;) {
-    DirectoryTree::const_leaf_iterator fileIter = tree->leafsBegin();
-
-    //Really truly we should use the supported extensions from the installation
-    //manager here
-    if (tree->numNodes() == 0 && tree->numLeafs() == 1 &&
-        (fileIter->getName().endsWith(".7z") ||
-         fileIter->getName().endsWith(".zip") ||
-         fileIter->getName().endsWith(".rar"))) {
-      // nested archive
-      m_found_dir = tree;
-      m_found_leaf = fileIter;
-      return true;
+  // Check if we have an archive:
+  // (Really truly we should use the supported extensions from the installation
+  // manager here.)
+  std::set<QString, FileNameComparator> supportedExtensions{ "7z", "zip", "rar" };
+  if (tree->size() == 1 && tree->at(0)->isFile()) {
+    auto file = tree->at(0);
+    if (supportedExtensions.count(file->suffix()) > 0) {
+      return file;
     }
+  }
 
-    for (; fileIter != tree->leafsEnd(); ++fileIter) {
-      if (fileIter->getName().endsWith(".fomod")) {
-        m_found_dir = tree;
-        m_found_leaf = fileIter;
-        return true;
+  // Look for a .fomod file:
+  int nDirs = 0;
+  for (auto entry : *tree) {
+    if (entry->isFile()) {
+      if (entry->suffix().compare("fomod", FileNameComparator::CaseSensitivity) == 0) {
+        return entry;
       }
     }
-
-    //Arguably this should also check the name of the directory we're looking at
-    //is the same as the module name
-    if (tree->numNodes() != 1) {
-      return false;
+    else {
+      nDirs++;
     }
-    tree = *(tree->nodesBegin());
   }
+
+  // Arguably this should also check the name of the directory we're looking at
+  // is the same as the module name:
+  if (nDirs != 1) {
+    return nullptr;
+  }
+
+  // Retrieve the first folder which is the first item:
+  return findObject(tree->at(0)->astree());
 }
 
-bool InstallerBundle::isArchiveSupported(const DirectoryTree &tree) const
+bool InstallerBundle::isArchiveSupported(std::shared_ptr<const IFileTree> tree) const
 {
-  return findObject(&tree);
+  return findObject(tree) != nullptr;
 }
 
-IPluginInstaller::EInstallResult InstallerBundle::install(GuessedValue<QString> &modName,
-                                                          DirectoryTree &tree,
-                                                          QString&, int &modId)
+IPluginInstaller::EInstallResult InstallerBundle::install(
+  GuessedValue<QString>& modName, std::shared_ptr<IFileTree>& tree, QString&, int &modId)
 {
-  if (! findObject(&tree)) {
+  // Find a valid "object":
+  auto entry = findObject(tree);
+  if (entry == nullptr) {
     return IPluginInstaller::RESULT_NOTATTEMPTED;
   }
-  FileNameString name = m_found_dir->getFullPath(&(*m_found_leaf));
-  QString tempFile = manager()->extractFile(name.toQString());
+
+  // Extract it:
+  QString tempFile = manager()->extractFile(entry);
   IPluginInstaller::EInstallResult res = manager()->installArchive(modName, tempFile, modId);
   if (res == IPluginInstaller::RESULT_SUCCESS) {
     res = IPluginInstaller::RESULT_SUCCESSCANCEL;
