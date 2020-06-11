@@ -78,21 +78,13 @@ bool InstallerBundle::isManualInstaller() const
 std::shared_ptr<const FileTreeEntry> InstallerBundle::findObject(std::shared_ptr<const IFileTree> tree) const
 {
   // Check if we have an archive:
-  // (Really truly we should use the supported extensions from the installation
-  // manager here.)
-  std::set<QString, FileNameComparator> supportedExtensions{ "7z", "zip", "rar" };
-  if (tree->size() == 1 && tree->at(0)->isFile()) {
-    auto file = tree->at(0);
-    if (supportedExtensions.count(file->suffix()) > 0) {
-      return file;
-    }
-  }
+  auto managerExtensions = manager()->getSupportedExtensions();
 
-  // Look for a .fomod file:
+  // Look for a file with a valid extension:
   int nDirs = 0;
   for (auto entry : *tree) {
     if (entry->isFile()) {
-      if (entry->suffix().compare("fomod", FileNameComparator::CaseSensitivity) == 0) {
+      if (managerExtensions.contains(entry->suffix(), FileNameComparator::CaseSensitivity)) {
         return entry;
       }
     }
