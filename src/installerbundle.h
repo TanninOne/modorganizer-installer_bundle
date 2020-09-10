@@ -55,13 +55,13 @@ public:
 private:
 
   /**
-   * @brief Find the first entry that can be extracted from this archive.
+   * @brief Find the entries that can be extracted from this archive.
    *
    * @param tree The tree to look the entry in.
    *
    * @return the entry, if one was found, or a null pointer.
    */
-  std::shared_ptr<const MOBase::FileTreeEntry> findObject(std::shared_ptr<const MOBase::IFileTree> tree) const;
+  std::vector<std::shared_ptr<const MOBase::FileTreeEntry>> findObjects(std::shared_ptr<const MOBase::IFileTree> tree) const;
 };
 
 
