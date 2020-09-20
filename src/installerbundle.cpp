@@ -22,6 +22,8 @@ along with Mod Organizer.  If not, see <http://www.gnu.org/licenses/>.
 
 #include <QtPlugin>
 
+#include "multiarchivedialog.h"
+
 using namespace MOBase;
 
 
@@ -75,8 +77,9 @@ bool InstallerBundle::isManualInstaller() const
   return false;
 }
 
-std::shared_ptr<const FileTreeEntry> InstallerBundle::findObject(std::shared_ptr<const IFileTree> tree) const
+std::vector<std::shared_ptr<const MOBase::FileTreeEntry>> InstallerBundle::findObjects(std::shared_ptr<const IFileTree> tree) const
 {
+  std::vector<std::shared_ptr<const MOBase::FileTreeEntry>> entries;
   // Check if we have an archive:
   auto managerExtensions = manager()->getSupportedExtensions();
 
@@ -85,7 +88,7 @@ std::shared_ptr<const FileTreeEntry> InstallerBundle::findObject(std::shared_ptr
   for (auto entry : *tree) {
     if (entry->isFile()) {
       if (managerExtensions.contains(entry->suffix(), FileNameComparator::CaseSensitivity)) {
-        return entry;
+        entries.push_back(entry);
       }
     }
     else {
@@ -93,28 +96,55 @@ std::shared_ptr<const FileTreeEntry> InstallerBundle::findObject(std::shared_ptr
     }
   }
 
+  if (!entries.empty()) {
+    return entries;
+  }
+
   // Arguably this should also check the name of the directory we're looking at
   // is the same as the module name:
   if (nDirs != 1) {
-    return nullptr;
+    return {};
   }
 
   // Retrieve the first folder which is the first item:
-  return findObject(tree->at(0)->astree());
+  return findObjects(tree->at(0)->astree());
 }
 
 bool InstallerBundle::isArchiveSupported(std::shared_ptr<const IFileTree> tree) const
 {
-  return findObject(tree) != nullptr;
+  return !findObjects(tree).empty();
 }
 
 IPluginInstaller::EInstallResult InstallerBundle::install(
   GuessedValue<QString>& modName, std::shared_ptr<IFileTree>& tree, QString&, int &modId)
 {
   // Find a valid "object":
-  auto entry = findObject(tree);
-  if (entry == nullptr) {
+  auto entries = findObjects(tree);
+  if (entries.empty()) {
     return IPluginInstaller::RESULT_NOTATTEMPTED;
+  }
+
+  std::shared_ptr<const FileTreeEntry> entry = nullptr;
+  if (entries.size() == 1) {
+    entry = entries[0];
+  }
+  else {
+    MultiArchiveDialog dialog(entries, parentWidget());
+    if (dialog.exec() == QDialog::Accepted) {
+      entry = dialog.selectedEntry();
+    }
+    else {
+      if (dialog.manualRequested()) {
+        return IPluginInstaller::RESULT_MANUALREQUESTED;
+      }
+      else {
+        return IPluginInstaller::RESULT_CANCELED;
+      }
+    }
+  }
+
+  if (entry == nullptr) {
+    return IPluginInstaller::RESULT_CANCELED;
   }
 
   // Extract it:
