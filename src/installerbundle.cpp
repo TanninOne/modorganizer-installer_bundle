@@ -32,8 +32,9 @@ InstallerBundle::InstallerBundle()
 }
 
 
-bool InstallerBundle::init(IOrganizer*)
+bool InstallerBundle::init(IOrganizer *organizer)
 {
+  m_Organizer = organizer;
   return true;
 }
 
@@ -64,7 +65,9 @@ bool InstallerBundle::isActive() const
 
 QList<PluginSetting> InstallerBundle::settings() const
 {
-  return QList<PluginSetting>();
+  return {
+    PluginSetting("auto_reinstall", "when reinstalling from an archive containing multiple mods, automatically select the previously installed", true)
+  };
 }
 
 unsigned int InstallerBundle::priority() const
@@ -75,6 +78,28 @@ unsigned int InstallerBundle::priority() const
 bool InstallerBundle::isManualInstaller() const
 {
   return false;
+}
+
+void InstallerBundle::onInstallationStart(QString const& archive, bool reinstallation, IModInterface* currentMod)
+{
+  // We reset some field and fetch the previously installed file:
+  m_InstallationFile = archive;
+  m_InstallerUsed = false;
+  m_SelectedFile = "";
+  m_PreviousFile = "";
+
+  if (reinstallation && m_Organizer->pluginSetting(name(), "auto_reinstall").toBool()) {
+    m_PreviousFile = currentMod->pluginSetting(name(), "archive", QString()).toString();
+  }
+}
+void InstallerBundle::onInstallationEnd(EInstallResult result, IModInterface* newMod)
+{
+  if (result == EInstallResult::RESULT_SUCCESS && m_InstallerUsed) {
+    newMod->setInstallationFile(m_InstallationFile);
+    if (!m_SelectedFile.isEmpty()) {
+      newMod->setPluginSetting(name(), "archive", m_SelectedFile);
+    }
+  }
 }
 
 std::vector<std::shared_ptr<const MOBase::FileTreeEntry>> InstallerBundle::findObjects(std::shared_ptr<const IFileTree> tree) const
@@ -129,16 +154,23 @@ IPluginInstaller::EInstallResult InstallerBundle::install(
     entry = entries[0];
   }
   else {
-    MultiArchiveDialog dialog(entries, parentWidget());
-    if (dialog.exec() == QDialog::Accepted) {
-      entry = dialog.selectedEntry();
+    if (!m_PreviousFile.isEmpty()) {
+      entry = tree->find(m_PreviousFile);
     }
-    else {
-      if (dialog.manualRequested()) {
-        return IPluginInstaller::RESULT_MANUALREQUESTED;
+
+    if (entry == nullptr) {
+      MultiArchiveDialog dialog(entries, parentWidget());
+      if (dialog.exec() == QDialog::Accepted) {
+        entry = dialog.selectedEntry();
+        m_SelectedFile = entry->pathFrom(tree);
       }
       else {
-        return IPluginInstaller::RESULT_CANCELED;
+        if (dialog.manualRequested()) {
+          return IPluginInstaller::RESULT_MANUALREQUESTED;
+        }
+        else {
+          return IPluginInstaller::RESULT_CANCELED;
+        }
       }
     }
   }
@@ -146,6 +178,8 @@ IPluginInstaller::EInstallResult InstallerBundle::install(
   if (entry == nullptr) {
     return IPluginInstaller::RESULT_CANCELED;
   }
+
+  m_InstallerUsed = true;
 
   // Extract it:
   QString tempFile = manager()->extractFile(entry);
