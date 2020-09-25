@@ -45,7 +45,10 @@ public:
   virtual QList<MOBase::PluginSetting> settings() const;
 
   virtual unsigned int priority() const override;
-  virtual bool isManualInstaller() const;
+  virtual bool isManualInstaller() const override;
+
+  virtual void onInstallationStart(QString const& archive, bool reinstallation, MOBase::IModInterface* currentMod) override;
+  virtual void onInstallationEnd(EInstallResult result, MOBase::IModInterface* newMod) override;
 
   virtual bool isArchiveSupported(std::shared_ptr<const MOBase::IFileTree> tree) const override;
   virtual EInstallResult install(MOBase::GuessedValue<QString> &modName,
@@ -62,6 +65,24 @@ private:
    * @return the entry, if one was found, or a null pointer.
    */
   std::vector<std::shared_ptr<const MOBase::FileTreeEntry>> findObjects(std::shared_ptr<const MOBase::IFileTree> tree) const;
+
+private:
+
+  MOBase::IOrganizer* m_Organizer;
+
+  // The archive being installed:
+  QString m_InstallationFile;
+
+  // Indicates if this installer was used during the installation process:
+  bool m_InstallerUsed;
+
+  // Contains the file installed (when multiple archives are present), or an
+  // empty string:
+  QString m_SelectedFile;
+
+  // Contains the file previously installed (when multiple archives are present), or an
+  // empty string:
+  QString m_PreviousFile;
 };
 
 
