@@ -43,6 +43,11 @@ QString InstallerBundle::name() const
   return "Bundle Installer";
 }
 
+QString InstallerBundle::localizedName() const
+{
+  return tr("Bundle Installer");
+}
+
 QString InstallerBundle::author() const
 {
   return "Tannin";
@@ -56,11 +61,6 @@ QString InstallerBundle::description() const
 VersionInfo InstallerBundle::version() const
 {
   return VersionInfo(1, 1, 0, VersionInfo::RELEASE_FINAL);
-}
-
-bool InstallerBundle::isActive() const
-{
-  return true;
 }
 
 QList<PluginSetting> InstallerBundle::settings() const
