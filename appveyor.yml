@@ -22,11 +22,11 @@ build_script:
     
     if($LastExitCode -ne 0) { $host.SetShouldExit($LastExitCode )  }
 artifacts:
-- path: build\src\installer_bundle.dll
+- path: vsbuild\src\RelWithDebInfo\installer_bundle.dll
   name: installer_bundle_dll
-- path: build\src\installer_bundle.pdb
+- path: vsbuild\src\RelWithDebInfo\installer_bundle.pdb
   name: installer_bundle_pdb
-- path: build\src\installer_bundle.lib
+- path: vsbuild\src\RelWithDebInfo\installer_bundle.lib
   name: installer_bundle_lib
 on_success:
   - ps: Set-Location -Path $env:APPVEYOR_BUILD_FOLDER
